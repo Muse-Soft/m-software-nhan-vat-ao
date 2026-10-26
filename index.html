@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nhân Vật Ảo — Tướng Việt Nam thời đại mới</title>
+<meta name="description" content="Trang giới thiệu nhân vật ảo hư cấu phong cách tướng Việt Nam thời đại mới, với hiệu ứng 3D mô phỏng bằng CSS/JS trên trang tĩnh.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@800;900&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0E1420; --bg2:#171F30; --text:#E8EDF5; --muted:#9AA7BC;
+    --cyan:#45C8FF; --steel:#8A93A6;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;font-size:17px;line-height:1.6;overflow-x:hidden}
+  h1,h2,h3,.label{font-family:'Archivo',sans-serif;font-weight:900;text-transform:uppercase;letter-spacing:-.5px}
+  h1{font-size:clamp(44px,7vw,72px);line-height:1.02}
+  h2{font-size:clamp(28px,4vw,36px);line-height:1.15;margin-bottom:18px}
+  h3{font-size:22px;margin-bottom:10px}
+  p{color:var(--muted)}
+  .label{font-size:13px;letter-spacing:3px;color:var(--cyan)}
+  .wrap{max-width:1280px;margin:0 auto;padding:0 32px}
+  section{padding:88px 0}
+  section:nth-child(even){background:var(--bg2)}
+
+  /* Vết sẹo phát sáng: đường chéo 2px x 48px, nghiêng -18 độ */
+  .scar{display:block;width:48px;height:2px;background:var(--cyan);
+    transform:rotate(-18deg);transform-origin:left center;
+    box-shadow:0 0 10px var(--cyan),0 0 22px rgba(69,200,255,.55);
+    margin:0 0 22px 6px;transition:width .4s ease}
+  .scar.grow{width:0}
+  .scar.grow.on{width:48px}
+
+  /* HERO — A3 lệch tâm: ảnh phải 60%, mép trái cắt chéo -18 độ */
+  .hero{position:relative;min-height:100vh;display:flex;align-items:center;padding:0;overflow:hidden}
+  .hero-img{position:absolute;top:0;right:0;width:60%;height:100%;
+    clip-path:polygon(18% 0,100% 0,100% 100%,0 100%)}
+  .hero-img svg{width:100%;height:100%;display:block}
+  .hero-text{position:relative;z-index:2;width:52%;padding:120px 0 120px 32px}
+  .hero-text .overlap{margin-left:0}
+  .hero-text p.lead{color:var(--text);font-size:19px;margin:20px 0 32px;max-width:520px}
+  .btn{display:inline-block;background:var(--cyan);color:#0E1420;font-family:'Archivo',sans-serif;
+    font-weight:800;text-transform:uppercase;letter-spacing:1px;text-decoration:none;
+    padding:16px 34px;border-radius:2px}
+  .btn:hover{filter:brightness(1.12)}
+
+  /* Hồ sơ: chữ trái 55% + ảnh lệch phải */
+  .profile{display:grid;grid-template-columns:55% 1fr;gap:48px;align-items:center}
+  .profile ul{list-style:none;margin-top:24px}
+  .profile li{padding:14px 0 14px 34px;border-bottom:1px solid #2a3548;position:relative;color:var(--text)}
+  .profile li::before{content:"";position:absolute;left:0;top:24px;width:18px;height:2px;
+    background:var(--cyan);transform:rotate(-18deg);box-shadow:0 0 8px var(--cyan)}
+  .portrait{transform:translateY(28px) rotate(1.5deg);border:1px solid #2a3548}
+  .portrait svg{width:100%;display:block}
+  .note{font-size:14px;color:var(--steel);margin-top:16px}
+
+  /* Thư viện: 3 khung lệch nhau, không thẳng hàng */
+  .gallery{display:grid;grid-template-columns:1fr 1fr 1fr;gap:28px;align-items:start}
+  .frame{border:1px solid #2a3548;background:var(--bg)}
+  .frame:nth-child(2){transform:translateY(44px)}
+  .frame:nth-child(3){transform:translateY(12px) rotate(-1deg)}
+  .frame svg{width:100%;display:block}
+  .frame figcaption{padding:16px 18px}
+  .frame figcaption p{font-size:14px}
+  .frame .sample{font-size:13px;color:var(--steel);margin-top:6px}
+
+  /* Khối 3D mô phỏng */
+  .stage{perspective:900px;text-align:center}
+  .tilt{position:relative;display:inline-block;max-width:680px;width:100%;
+    transition:transform .3s ease;transform-style:preserve-3d;will-change:transform}
+  .tilt svg{width:100%;display:block;border:1px solid #2a3548}
+  .layer{position:absolute;border:1px solid rgba(69,200,255,.35);pointer-events:none}
+  .layer.l1{inset:5% 8%;transform:translateZ(40px)}
+  .layer.l2{inset:-3% -2%;transform:translateZ(70px);border-color:rgba(138,147,166,.4)}
+  .hint{font-size:14px;color:var(--steel);margin-top:18px}
+
+  footer{border-top:1px solid #2a3548;padding:48px 0}
+  footer p{font-size:14px}
+  footer a{color:var(--cyan)}
+
+  @media (max-width:1024px){
+    .hero{display:block;min-height:0}
+    .hero-img{position:relative;width:100%;height:auto;aspect-ratio:4/5;
+      clip-path:polygon(0 12%,100% 0,100% 100%,0 100%)}
+    .hero-text{width:100%;padding:48px 32px}
+    .profile{grid-template-columns:1fr}
+    .portrait{transform:none}
+    .gallery{grid-template-columns:1fr;max-width:520px}
+    .frame:nth-child(2),.frame:nth-child(3){transform:none}
+    section{padding:48px 0}
+    .scar{width:32px}
+  }
+  @media (max-width:640px){
+    .wrap,.hero-text{padding-left:20px;padding-right:20px}
+    h2{font-size:28px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .tilt{transition:none}
+    .scar{transition:none}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ 1. HERO ============ -->
+<header class="hero">
+  <div class="hero-text wrap">
+    <span class="label">Nhân vật ảo 3D</span>
+    <h1>Nhân<br>Vật Ảo</h1>
+    <p class="lead">Tên riêng: [CẦN BỔ SUNG]<br>
+    Tướng Việt Nam thời đại mới — mặt sẹo, góc cạnh, bặm trợn, chuyển động 3D.</p>
+    <a class="btn" href="#ho-so">Xem hồ sơ</a>
+    <p class="note">Ảnh minh họa mẫu — minh họa nhân vật hư cấu, không phải người thật.</p>
+  </div>
+  <div class="hero-img" aria-label="Minh họa nhân vật ảo">
+    <svg viewBox="0 0 600 800" preserveAspectRatio="xMidYMid slice" role="img">
+      <defs>
+        <linearGradient id="bg1" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#1c2942"/><stop offset="1" stop-color="#0E1420"/>
+        </linearGradient>
+        <linearGradient id="rim" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#45C8FF"/><stop offset=".35" stop-color="#45C8FF" stop-opacity="0"/><stop offset="1" stop-color="#8A93A6" stop-opacity="0"/>
+        </linearGradient>
+        <linearGradient id="armor" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#2c3a52"/><stop offset="1" stop-color="#141c2c"/>
+        </linearGradient>
+      </defs>
+      <rect width="600" height="800" fill="url(#bg1)"/>
+      <rect width="600" height="800" fill="url(#rim)" opacity=".5"/>
+      <!-- Vai áo giáp góc cạnh -->
+      <polygon points="60,800 150,560 300,500 450,560 540,800" fill="url(#armor)"/>
+      <polygon points="150,560 300,500 300,800 150,800" fill="#1a2336"/>
+      <polygon points="300,500 450,560 450,800 300,800" fill="#232f47"/>
+      <!-- Cổ + đầu góc cạnh -->
+      <polygon points="250,520 350,520 330,430 270,430" fill="#3a475c"/>
+      <polygon points="200,430 400,430 385,300 300,240 215,300" fill="#4a5a75"/>
+      <polygon points="300,240 385,300 370,430 300,470 230,430 215,300" fill="#5c6d88"/>
+      <!-- Mắt lạnh -->
+      <polygon points="235,350 285,350 280,362 240,362" fill="#45C8FF"/>
+      <polygon points="315,350 365,350 360,362 320,362" fill="#45C8FF"/>
+      <!-- Vết sẹo phát sáng -->
+      <line x1="255" y1="300" x2="330" y2="395" stroke="#45C8FF" stroke-width="4" stroke-linecap="round" opacity=".95"/>
+      <line x1="255" y1="300" x2="330" y2="395" stroke="#45C8FF" stroke-width="10" stroke-linecap="round" opacity=".25"/>
+      <!-- Râu bặm trợn, cằm góc cạnh -->
+      <polygon points="230,430 300,470 370,430 350,480 300,505 250,480" fill="#2e3a4f"/>
+      <!-- Huy hiệu -->
+      <polygon points="300,600 330,630 300,670 270,630" fill="none" stroke="#45C8FF" stroke-width="2"/>
+      <circle cx="300" cy="635" r="6" fill="#45C8FF"/>
+    </svg>
+  </div>
+</header>
+
+<!-- ============ 2. HỒ SƠ ============ -->
+<section id="ho-so">
+  <div class="wrap profile">
+    <div>
+      <span class="scar grow"></span>
+      <h2>Hồ sơ nhân vật</h2>
+      <p>Nhân vật ảo hư cấu, phong cách tướng Việt Nam thời đại mới. Mọi thông tin chưa xác nhận đều để placeholder — không bịa tiểu sử, quê quán hay năm sinh.</p>
+      <ul>
+        <li>Ánh nhìn lạnh, dứt khoát</li>
+        <li>Dáng đứng thẳng, góc cạnh</li>
+        <li>Vết sẹo là dấu ấn nhận diện</li>
+      </ul>
+      <p class="note">Tiểu sử chi tiết: [CẦN BỔ SUNG]<br>Tính cách mở rộng: [CẦN BỔ SUNG]</p>
+    </div>
+    <figure class="portrait">
+      <svg viewBox="0 0 400 400" role="img" aria-label="Chân dung minh họa mẫu">
+        <rect width="400" height="400" fill="#1c2942"/>
+        <polygon points="80,400 130,240 200,200 270,240 320,400" fill="url(#armor)"/>
+        <polygon points="130,240 270,240 255,150 200,120 145,150" fill="#5c6d88"/>
+        <polygon points="160,205 240,205 235,215 165,215" fill="#45C8FF"/>
+        <line x1="175" y1="160" x2="215" y2="215" stroke="#45C8FF" stroke-width="3" stroke-linecap="round"/>
+        <line x1="175" y1="160" x2="215" y2="215" stroke="#45C8FF" stroke-width="8" stroke-linecap="round" opacity=".25"/>
+      </svg>
+      <figcaption class="note" style="padding:12px 16px">Chân dung — Ảnh minh họa mẫu.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- ============ 3. THƯ VIỆN GÓC NHÌN ============ -->
+<section>
+  <div class="wrap">
+    <span class="scar grow"></span>
+    <h2>Thư viện góc nhìn</h2>
+    <p style="margin-bottom:36px">Ba góc nhìn lệch nhau — không thẳng hàng, đúng tinh thần bố cục lệch tâm.</p>
+    <div class="gallery">
+      <figure class="frame">
+        <svg viewBox="0 0 400 400" role="img" aria-label="Chân dung 1:1">
+          <rect width="400" height="400" fill="#1c2942"/>
+          <polygon points="100,400 150,230 200,195 250,230 300,400" fill="#232f47"/>
+          <polygon points="140,230 260,230 245,140 200,110 155,140" fill="#5c6d88"/>
+          <polygon points="165,195 235,195 230,205 170,205" fill="#45C8FF"/>
+          <line x1="180" y1="150" x2="215" y2="205" stroke="#45C8FF" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+        <figcaption><h3>Chân dung · 1:1</h3><p>Góc nhìn trực diện, ánh sáng viền lạnh từ một phía.</p><p class="sample">Ảnh minh họa mẫu.</p></figcaption>
+      </figure>
+      <figure class="frame">
+        <svg viewBox="0 0 400 500" role="img" aria-label="Toàn thân 4:5">
+          <rect width="400" height="500" fill="#171F30"/>
+          <polygon points="60,500 120,280 200,240 280,280 340,500" fill="#232f47"/>
+          <polygon points="150,280 250,280 240,180 200,150 160,180" fill="#5c6d88"/>
+          <polygon points="170,225 230,225 225,235 175,235" fill="#45C8FF"/>
+          <line x1="180" y1="185" x2="215" y2="230" stroke="#45C8FF" stroke-width="3" stroke-linecap="round"/>
+          <polygon points="200,240 230,300 200,330 170,300" fill="none" stroke="#45C8FF" stroke-width="2"/>
+        </svg>
+        <figcaption><h3>Toàn thân · 4:5</h3><p>Dáng đứng thẳng, vai áo giáp góc cạnh, bóng đổ sắc góc.</p><p class="sample">Ảnh minh họa mẫu.</p></figcaption>
+      </figure>
+      <figure class="frame">
+        <svg viewBox="0 0 600 400" role="img" aria-label="Cận cảnh vết sẹo 3:2">
+          <rect width="600" height="400" fill="#0E1420"/>
+          <polygon points="100,400 250,120 450,120 550,400" fill="#4a5a75"/>
+          <polygon points="250,120 450,120 420,260 280,260" fill="#5c6d88"/>
+          <line x1="300" y1="150" x2="400" y2="300" stroke="#45C8FF" stroke-width="6" stroke-linecap="round"/>
+          <line x1="300" y1="150" x2="400" y2="300" stroke="#45C8FF" stroke-width="16" stroke-linecap="round" opacity=".25"/>
+          <polygon points="330,230 420,230 415,245 335,245" fill="#45C8FF"/>
+        </svg>
+        <figcaption><h3>Cận cảnh vết sẹo · 3:2</h3><p>Dấu ấn nhận diện — đường sẹo phát sáng cyan.</p><p class="sample">Ảnh minh họa mẫu.</p></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4. CHUYỂN ĐỘNG 3D MÔ PHỎNG ============ -->
+<section>
+  <div class="wrap stage">
+    <span class="scar grow" style="margin-left:auto;margin-right:auto"></span>
+    <h2>Chuyển động 3D mô phỏng</h2>
+    <p style="margin-bottom:36px">Hiệu ứng 3D mô phỏng bằng CSS/JS trên trang tĩnh — không phải mô hình 3D thật. Di chuột qua khung hình trên desktop để xoay nhẹ nhân vật.</p>
+    <div class="tilt" id="tilt">
+      <div class="layer l1"></div>
+      <div class="layer l2"></div>
+      <svg viewBox="0 0 680 420" role="img" aria-label="Nhân vật xoay 3D mô phỏng">
+        <rect width="680" height="420" fill="#1c2942"/>
+        <polygon points="180,420 260,200 340,160 420,200 500,420" fill="#232f47"/>
+        <polygon points="260,200 420,200 400,110 340,80 280,110" fill="#5c6d88"/>
+        <polygon points="300,165 380,165 375,178 305,178" fill="#45C8FF"/>
+        <line x1="315" y1="120" x2="360" y2="175" stroke="#45C8FF" stroke-width="4" stroke-linecap="round"/>
+        <line x1="315" y1="120" x2="360" y2="175" stroke="#45C8FF" stroke-width="12" stroke-linecap="round" opacity=".25"/>
+        <polygon points="340,210 370,240 340,270 310,240" fill="none" stroke="#45C8FF" stroke-width="2"/>
+      </svg>
+    </div>
+    <p class="hint">Desktop: nghiêng theo chuột tối đa ±6°, mượt 0,3 giây · Mobile: nghiêng nhẹ tự động khi cuộn · Tắt hoàn toàn nếu bật giảm chuyển động.</p>
+  </div>
+</section>
+
+<!-- ============ 5. CHÂN TRANG ============ -->
+<footer>
+  <div class="wrap">
+    <p>Trang giới thiệu nhân vật hư cấu — toàn bộ ảnh và thông tin là mẫu minh họa.</p>
+    <p style="margin-top:8px">Liên hệ: [CẦN BỔ SUNG] · <a href="mailto:contact@genalpha.dev">contact@genalpha.dev</a></p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Vết sẹo chạy dài 0 -> 48px (32px mobile) khi cuộn tới, chỉ một lần mỗi khối
+  var scars = document.querySelectorAll('.scar.grow');
+  if ('IntersectionObserver' in window && !reduced) {
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting) { e.target.classList.add('on'); io.unobserve(e.target); }
+      });
+    }, {threshold: 0.5});
+    scars.forEach(function(s){ io.observe(s); });
+  } else {
+    scars.forEach(function(s){ s.classList.add('on'); });
+  }
+  if (reduced) return;
+  // Nghiêng 3D mô phỏng: tối đa ±6 độ, mượt 0,3s (CSS transition)
+  var tilt = document.getElementById('tilt');
+  var fine = window.matchMedia('(pointer: fine)').matches;
+  if (fine) {
+    tilt.addEventListener('mousemove', function(e){
+      var r = tilt.getBoundingClientRect();
+      var x = (e.clientX - r.left) / r.width - 0.5;
+      var y = (e.clientY - r.top) / r.height - 0.5;
+      tilt.style.transform = 'rotateY(' + (x * 12) + 'deg) rotateX(' + (-y * 12) + 'deg)';
+    });
+    tilt.addEventListener('mouseleave', function(){ tilt.style.transform = 'rotateY(0deg) rotateX(0deg)'; });
+  } else {
+    // Mobile: nghiêng nhẹ tự động khi cuộn
+    var ticking = false;
+    window.addEventListener('scroll', function(){
+      if (ticking) return; ticking = true;
+      requestAnimationFrame(function(){
+        var r = tilt.getBoundingClientRect();
+        var center = (r.top + r.height / 2) - window.innerHeight / 2;
+        var deg = Math.max(-6, Math.min(6, -center / 80));
+        tilt.style.transform = 'rotateY(' + deg + 'deg)';
+        ticking = false;
+      });
+    }, {passive: true});
+  }
+})();
+</script>
+</body>
+</html>
